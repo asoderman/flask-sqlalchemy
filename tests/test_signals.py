@@ -59,3 +59,15 @@ def test_model_signals(db, Todo):
     assert recorded[0][0] == todo
     assert recorded[0][1] == 'delete'
     fsa.models_committed.disconnect(committed)
+
+def test_connect_via_app(app, db, Todo):
+    recorded = []
+    @fsa.models_committed.connect_via(app)
+    def on_models_committed(sender, changes):
+        assert changes[0][1] == 'insert'
+        recorded.append(changes[0][1])
+    todo = Todo('Awesome', 'the text')
+    db.session.add(todo)
+    db.session.commit()
+    assert recorded[0] == 'insert'
+
